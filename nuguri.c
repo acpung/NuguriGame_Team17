@@ -10,6 +10,7 @@
 #ifdef _WIN32
     #include <windows.h> // sleep, setConsoleMode 함수 사용
     #include <conio.h> // _khbit 함수 사용
+    #include "screen_control.h"
 #else
   #include <unistd.h>
   #include <termios.h>
@@ -76,6 +77,10 @@ int main() {
     #ifdef _WIN32
         SetConsoleOutputCP(65001); // 콘솔에서 출력을 utf-8로 하도록 만듦. main실행되자 마자 바로 utf-8로 바꿔야 나머지 출력도 다 적용됨.
         //SetConsoleCP(65001) -> 콘솔에서 출력할 때 code page를 설정하는 역할을 함. / 65001 -> UTF-8을 나타내는 코드페이지 번호임.
+        // 이 아래는 printf("\x1b[2J\x1b[H"); 같은 안시 이스케이프 코드를 윈도우에서도 쓸 수 있게 해줌.
+        enable_ansiEscapeCode_in_window();
+        //이거는 커서 보이기 문제임
+        disable_cursor();
     #endif
 
     srand(time(NULL));
@@ -148,6 +153,12 @@ int main() {
     }
 
     disable_raw_mode();
+
+    #ifdef _WIN32
+        disable_ansiEscapeCode_in_window();
+        enable_cursor();
+    #endif
+
     return 0;
 }
 
@@ -226,7 +237,7 @@ void init_stage() {
 
 // 게임 화면 그리기
 void draw_game() {
-    printf("\x1b[2J\x1b[H");
+    printf("\x1b[H"); //깜빡임 없애기 위해 \x1b[2J를 삭제함
     printf("Stage: %d | Score: %d\n", stage + 1, score);
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 
