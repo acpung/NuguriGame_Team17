@@ -3,6 +3,9 @@
 #include <string.h>
 #include <time.h>
 
+// 화면 깜빡임 문제 해결하기
+// 플레이어가 점프할 때 2칸 -> 1칸 점프하기에 처음 2칸 안에 있는 코인 안 먹어지는 문제 해결하기
+
 // 윈도우일 경우와 리눅스의 경우 다른 코드 사용을 위한 분리
 #ifdef _WIN32
     #include <windows.h> // sleep, setConsoleMode 함수 사용
@@ -69,6 +72,12 @@ void check_collisions();
 int kbhit();
 
 int main() {
+
+    #ifdef _WIN32
+        SetConsoleOutputCP(65001); // 콘솔에서 출력을 utf-8로 하도록 만듦. main실행되자 마자 바로 utf-8로 바꿔야 나머지 출력도 다 적용됨.
+        //SetConsoleCP(65001) -> 콘솔에서 출력할 때 code page를 설정하는 역할을 함. / 65001 -> UTF-8을 나타내는 코드페이지 번호임.
+    #endif
+
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
@@ -79,12 +88,27 @@ int main() {
 
     while (!game_over && stage < MAX_STAGES) {
         if (kbhit()) {
-            c = getchar();
-            if (c == 'q') {
-                game_over = 1;
-                continue;
-            }
-            if (c == '\x1b') {
+            #ifdef _WIN32
+                c = _getch();
+                if (c == 'q') {
+                    game_over = 1;
+                    continue;
+                }
+                if(c == -32 || c == 224){
+                    switch (_getch()) {
+                        case 72: c = 'w'; break; // Up
+                        case 80: c = 's'; break; // Down
+                        case 77: c = 'd'; break; // Right
+                        case 75: c = 'a'; break; // Left
+                    }
+                }
+            #else
+                c = getchar();
+                if (c == 'q') {
+                    game_over = 1;
+                    continue;
+                }
+                if (c == '\x1b') {
                 getchar(); // '['
                 switch (getchar()) {
                     case 'A': c = 'w'; break; // Up
@@ -93,13 +117,21 @@ int main() {
                     case 'D': c = 'a'; break; // Left
                 }
             }
+            #endif
+
         } else {
             c = '\0';
         }
 
         update_game(c);
         draw_game();
-        usleep(90000);
+
+        #ifdef _WIN32
+            Sleep(90);
+        #else
+            usleep(90000);
+        #endif
+        
 
         if (map[stage][player_y][player_x] == 'E') {
             stage++;
@@ -123,7 +155,7 @@ int main() {
 // 터미널 Raw 모드 활성화/비활성화
 void disable_raw_mode() {
     #ifdef _WIN32
-        SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), orig & (ENABLE_ECHO_INPUT|ENABLE_LINE_INPUT));
+        SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), orig & (ENABLE_ECHO_INPUT));
     #else
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
     #endif
@@ -134,7 +166,7 @@ void enable_raw_mode() {
         HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
         GetConsoleMode(hStdIn, &orig);
         DWORD new = orig;
-        SetConsoleMode(hStdIn, new & ~(ENABLE_ECHO_INPUT|ENABLE_LINE_INPUT));
+        SetConsoleMode(hStdIn, new & ~(ENABLE_ECHO_INPUT));
     #else
         tcgetattr(STDIN_FILENO, &orig_termios);
         atexit(disable_raw_mode);
