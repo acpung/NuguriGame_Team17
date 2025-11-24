@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
 #include <time.h>
+
+// 윈도우일 경우와 리눅스의 경우 다른 코드 사용을 위한 분리
+#ifdef _WIN32
+    #include <windows.h> // sleep, setConsoleMode 함수 사용
+    #include <conio.h> // _khbit 함수 사용
+#else
+  #include <unistd.h>
+  #include <termios.h>
+  #include <fcntl.h>
+#endif
 
 // 맵 및 게임 요소 정의 (수정된 부분)
 #define MAP_WIDTH 40  // 맵 너비를 40으로 변경
@@ -42,7 +49,12 @@ Coin coins[MAX_COINS];
 int coin_count = 0;
 
 // 터미널 설정
-struct termios orig_termios;
+#ifdef _WIN32
+    DWORD orig = 0;
+#else
+    struct termios orig_termios;
+#endif
+
 
 // 함수 선언
 void disable_raw_mode();
@@ -109,13 +121,27 @@ int main() {
 
 
 // 터미널 Raw 모드 활성화/비활성화
-void disable_raw_mode() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios); }
+void disable_raw_mode() {
+    #ifdef _WIN32
+        SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), orig & (ENABLE_ECHO_INPUT|ENABLE_LINE_INPUT));
+    #else
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    #endif
+}
+
 void enable_raw_mode() {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disable_raw_mode);
-    struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ECHO | ICANON);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    #ifdef _WIN32
+        HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+        GetConsoleMode(hStdIn, &orig);
+        DWORD new = orig;
+        SetConsoleMode(hStdIn, new & ~(ENABLE_ECHO_INPUT|ENABLE_LINE_INPUT));
+    #else
+        tcgetattr(STDIN_FILENO, &orig_termios);
+        atexit(disable_raw_mode);
+        struct termios raw = orig_termios;
+        raw.c_lflag &= ~(ECHO | ICANON);
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+    #endif
 }
 
 // 맵 파일 로드
@@ -300,21 +326,25 @@ void check_collisions() {
 
 // 비동기 키보드 입력 확인
 int kbhit() {
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-    return 0;
+    #ifdef _WIN32
+        return _kbhit();
+    #else
+        struct termios oldt, newt;
+        int ch;
+        int oldf;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+        ch = getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        fcntl(STDIN_FILENO, F_SETFL, oldf);
+        if(ch != EOF) {
+            ungetc(ch, stdin);
+            return 1;
+        }
+        return 0;
+    #endif
 }
