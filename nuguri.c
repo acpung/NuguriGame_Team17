@@ -83,7 +83,8 @@ int main() {
         //이거는 커서 보이기 문제임
         disable_cursor();
     #endif
-
+    
+    printf("\x1b[2J\x1b[H"); // 화면 지우고 게임 출력하기
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
