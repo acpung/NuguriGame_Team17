@@ -24,6 +24,10 @@
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
 
+#ifdef _WIN32
+    #define getchar() _getch()
+#endif
+
 // 구조체 정의
 typedef struct {
     int x, y;
@@ -94,13 +98,13 @@ int main() {
     while (!game_over && stage < MAX_STAGES) {
         if (kbhit()) {
             #ifdef _WIN32
-                c = _getch();
+                c = getchar();
                 if (c == 'q') {
                     game_over = 1;
                     continue;
                 }
                 if(c == -32 || c == 224){
-                    switch (_getch()) {
+                    switch (getchar()) {
                         case 72: c = 'w'; break; // Up
                         case 80: c = 's'; break; // Down
                         case 77: c = 'd'; break; // Right
