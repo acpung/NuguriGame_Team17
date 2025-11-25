@@ -3,9 +3,6 @@
 #include <string.h>
 #include <time.h>
 
-// 화면 깜빡임 문제 해결하기
-// 플레이어가 점프할 때 2칸 -> 1칸 점프하기에 처음 2칸 안에 있는 코인 안 먹어지는 문제 해결하기
-
 // 윈도우일 경우와 리눅스의 경우 다른 코드 사용을 위한 분리
 #ifdef _WIN32
     #include <windows.h> // sleep, setConsoleMode 함수 사용
@@ -300,12 +297,22 @@ void move_player(char input) {
         case ' ':
             if (!is_jumping && (floor_tile == '#' || on_ladder)) {
                 is_jumping = 1;
-                velocity_y = -2;
+                velocity_y = -3; // 점프 시 한 칸씩 이동하도록 바꾸었기에 총 3칸을 점프시키기 위해 -2에서 -3으로 바꿈
             }
             break;
     }
 
-    if (next_x >= 0 && next_x < MAP_WIDTH && map[stage][player_y][next_x] != '#') player_x = next_x;
+    // 속도가 있는 경우(점프 한 경우)에 다음 위치의 좌우 이동이 벽인지 감지하는 문장이 없어 추가함
+    // 속도가 없는 경우 중 떨어지는 경우에도 다음 위치의 좌우 이동을 벽인지 감지하도록 추가함
+    if(velocity_y > 0){
+        if (next_x >= 0 && next_x < MAP_WIDTH && map[stage][player_y][next_x] != '#' && map[stage][player_y+1][next_x] != '#') player_x = next_x;
+    } else if(velocity_y > 0){
+        if (next_x >= 0 && next_x < MAP_WIDTH && map[stage][player_y][next_x] != '#' && map[stage][player_y-1][next_x] != '#') player_x = next_x;
+    } else if (floor_tile != '#' && floor_tile != 'H') {
+        if (map[stage][player_y+1][next_x] != '#') player_x = next_x;
+    } else {
+        if (next_x >= 0 && next_x < MAP_WIDTH && map[stage][player_y][next_x] != '#') player_x = next_x;
+    }
     
     if (on_ladder && (input == 'w' || input == 's')) {
         if(next_y >= 0 && next_y < MAP_HEIGHT && map[stage][next_y][player_x] != '#') {
@@ -316,9 +323,8 @@ void move_player(char input) {
     } 
     else {
         if (is_jumping) {
-            next_y = player_y + velocity_y;
+            next_y = player_y + (velocity_y > 0 ? 1 : (velocity_y < 0 ? -1 : 0)); // 기울기 확인 후 1씩 이동하도록 수정
             if(next_y < 0) next_y = 0;
-            velocity_y++;
 
             if (velocity_y < 0 && next_y < MAP_HEIGHT && map[stage][next_y][player_x] == '#') {
                 velocity_y = 0;
@@ -329,6 +335,8 @@ void move_player(char input) {
             if ((player_y + 1 < MAP_HEIGHT) && map[stage][player_y + 1][player_x] == '#') {
                 is_jumping = 0;
                 velocity_y = 0;
+            } else {
+                velocity_y++; // 조건 검사 후 기울기를 증가시키도록 수정
             }
         } else {
             if (floor_tile != '#' && floor_tile != 'H') {
