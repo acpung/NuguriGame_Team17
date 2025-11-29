@@ -55,11 +55,16 @@ void move_player(char input);
 void move_enemies();
 void check_collisions();
 int kbhit();
+void print_center(char *str);
+void title_screen();
+void ending_screen_clear();
+void ending_screen_gameover();
 
 int main() {
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
+    title_screen();
     init_stage();
 
     char c = '\0';
@@ -96,9 +101,10 @@ int main() {
                 init_stage();
             } else {
                 game_over = 1;
-                printf("\x1b[2J\x1b[H");
-                printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
-                printf("최종 점수: %d\n", score);
+                ending_screen_clear();
+                // printf("\x1b[2J\x1b[H");
+                // printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
+                // printf("최종 점수: %d\n", score);
             }
         }
     }
@@ -164,6 +170,67 @@ void init_stage() {
             }
         }
     }
+}
+
+void print_center(char *str){
+    int center = (MAP_WIDTH - strlen(str)) / 2;
+    //중앙까지 공백 작성
+    for(int i=0;i<center;i++) printf(" ");
+    printf("%s\n", str);
+}
+
+void title_screen(){
+    printf("\x1b[2J\x1b[3;1H");
+    print_center(" _   _ _   _  ____ _   _ ____  ___ ");
+    print_center("| \\ | | | | |/ ___| | | |  _ \\|_ _|");
+    print_center("|  \\| | | | | |  _| | | | |_) || |");
+    print_center("| |\\  | |_| | |_| | |_| |  _ < | | ");
+    print_center("|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
+    printf("\n");
+    while(!kbhit()) {
+        printf("\x1b[1A\x1b[2K");
+        print_center("press any key to start");
+        delay(500); // 0.5초 대기
+
+        printf("\x1b[1A\x1b[2K");
+        delay(500); // 0.5초 대기
+    }
+    getchar();
+}
+
+void ending_screen_clear(){
+    printf("\x1b[2J\x1b[3;1H");
+    print_center("  ____ _     _____    _    ____  ");
+    print_center(" / ___| |   | ____|  / \\  |  _ \\ ");
+    print_center("| |   | |   |  _|   / _ \\ | |_) |");
+    print_center("| |___| |___| |___ / ___ \\|  _ < ");
+    print_center(" \\____|_____|_____/_/   \\_\\_| \\_\\");
+    printf("\n");
+    print_center("축하합니다! 모든 스테이지를 클리어했습니다!\n");
+    //print_center() 에서는 문자열을 하나만 받기에 %d 사용 불가능
+    char buf[50];
+    sprintf(buf, "최종 점수: %d", score);
+    print_center(buf);
+    print_center("Press Any Key to Exit");
+    while(!kbhit());
+    getchar();
+}
+
+void ending_screen_gameover(){
+    printf("\x1b[2J\x1b[3;1H");                                              
+    print_center("   ____    _    __  __ _____    _____     _______ ____  ");
+    print_center("  / ___|  / \\  |  \\/  | ____|  / _ \\ \\   / / ____|  _ \\ ");
+    print_center(" | |  _  / _ \\ | |\\/| |  _|   | | | \\ \\ / /|  _| | |_) |");
+    print_center(" | |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
+    print_center("  \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
+    printf("\n");
+    printf("너구리가 쓰러졌습니다...\n");
+    char buf[50];
+    sprintf(buf, "최종 점수: %d", score);
+    print_center(buf);
+    print_center("Press Any Key to Exit");
+    while(!kbhit());
+    getchar();
 }
 
 // 게임 화면 그리기
@@ -318,3 +385,13 @@ int kbhit() {
     }
     return 0;
 }
+
+#ifdef _WIN32
+  void delay(int ms) {
+    Sleep(ms); // 윈도우용 잠깐 기다리는 함수. 이건 밀리초임.
+  }
+#else
+  void delay(int ms) {
+    usleep(ms * 1000); // 이건 마이크로 초 단위임. 이에 윈도우의 sleep에서 1밀리초인게 usleep에서는 1000*1마이크로초 임.
+  }
+#endif
