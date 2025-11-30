@@ -63,6 +63,48 @@ void title_screen();
 void ending_screen_clear();
 void ending_screen_gameover();
 
+void sound_coin() {
+#ifdef _WIN32
+    Beep(1000, 80);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_hit() {
+#ifdef _WIN32
+    Beep(300, 200);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_select() {
+#ifdef _WIN32
+    Beep(700, 100);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_clear() {
+#ifdef _WIN32
+    Beep(900, 100);
+    Beep(1200, 150);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_gameover() {
+#ifdef _WIN32
+    Beep(400, 200);
+    Beep(250, 300);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
 int main() {
     srand(time(NULL));
     enable_raw_mode();
@@ -100,6 +142,7 @@ int main() {
         if (map[stage][player_y][player_x] == 'E') {
             stage++;
             score += 100;
+            sound_clear();
             if (stage < MAX_STAGES) {
                 init_stage();
             } else {
@@ -111,7 +154,6 @@ int main() {
             }
         }
     }
-
     disable_raw_mode();
     return 0;
 }
@@ -232,16 +274,17 @@ void title_screen(){
 
         //해당 위치 줄 삭제
         #ifdef _WIN32
-            COORD xy = { 0, MAP_HEIGHT-3-1 };
+            COORD xy = { 0, (MAP_HEIGHT-2)-1 };
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
             for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
         #else
-            printf("\x1b[%d;1H\x1b[2K", MAP_HEIGHT-3);
+            printf("\x1b[%d;1H\x1b[2K", MAP_HEIGHT-2);
         #endif
         fflush(stdout);
         delay(500); // 0.5초 대기
     }
     getchar();
+    sound_select();
 }
 
 void ending_screen_clear(){
@@ -401,6 +444,7 @@ void move_enemies() {
 void check_collisions() {
     for (int i = 0; i < enemy_count; i++) {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
+            sound_hit();
             score = (score > 50) ? score - 50 : 0;
             init_stage();
             return;
@@ -410,6 +454,7 @@ void check_collisions() {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
             score += 20;
+            sound_coin();
         }
     }
 }
