@@ -55,7 +55,10 @@ void move_player(char input);
 void move_enemies();
 void check_collisions();
 int kbhit();
-void print_center(char *str);
+void clrscr();
+void delay(int ms);
+void print_border(int row);
+void print_center(int row, char *str);
 void title_screen();
 void ending_screen_clear();
 void ending_screen_gameover();
@@ -172,63 +175,109 @@ void init_stage() {
     }
 }
 
-void print_center(char *str){
-    int center = (MAP_WIDTH - strlen(str)) / 2;
-    //중앙까지 공백 작성
-    for(int i=0;i<center;i++) printf(" ");
-    printf("%s\n", str);
+void print_border(int row) {
+    #ifdef _WIN32
+        COORD xy; // COORD는 coordinate의 줄임말임. x와 y 값 저장하는 역할임.
+        xy.X = 0;
+        xy.Y = row-1+3;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE)/*콘솔화면*/, xy/*좌표*/);
+        // SetConsoleCursorPosition은 콘솔id랑 좌표를 파라미터로 받아서 커서를 이동시킴
+    #else
+        printf("\x1b[%d;1H", row);
+        fflush(stdout);
+    #endif
+    
+    for (int i = 0; i < MAP_WIDTH + 2; i++) printf("#");
+}
+
+void print_center(int row, char *str){
+    int center;
+    int len = strlen(str);
+    
+    if (len >= MAP_WIDTH + 2) {
+        center = 1;
+    } else {
+        center = (MAP_WIDTH + 2 - len) / 2 + 1;
+    }
+
+    #ifdef _WIN32
+        COORD xy; // COORD는 coordinate의 줄임말임. x와 y 값 저장하는 역할임.
+        xy.X = center-1;
+        xy.Y = row-1;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE)/*콘솔화면*/, xy/*좌표*/);
+        // SetConsoleCursorPosition은 콘솔id랑 좌표를 파라미터로 받아서 커서를 이동시킴
+    #else
+        printf("\x1b[%d;%dH", row, center);
+        fflush(stdout);
+    #endif
+
+    printf("%s", str);
 }
 
 void title_screen(){
-    printf("\x1b[2J\x1b[3;1H");
-    print_center(" _   _ _   _  ____ _   _ ____  ___ ");
-    print_center("| \\ | | | | |/ ___| | | |  _ \\|_ _|");
-    print_center("|  \\| | | | | |  _| | | | |_) || |");
-    print_center("| |\\  | |_| | |_| | |_| |  _ < | | ");
-    print_center("|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
-    printf("\n");
+    clrscr();
+
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
+    print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
+    print_center(7, "|  \\| | | | | |  _| | | | |_) || | ");
+    print_center(8,"| |\\  | |_| | |_| | |_| |  _ < | | ");
+    print_center(9,"|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
+
     while(!kbhit()) {
-        printf("\x1b[1A\x1b[2K");
-        print_center("press any key to start");
+        print_center(MAP_HEIGHT-2, "press any key to start");
+        fflush(stdout);
         delay(500); // 0.5초 대기
 
-        printf("\x1b[1A\x1b[2K");
+        //해당 위치 줄 삭제
+        #ifdef _WIN32
+            COORD xy = { 0, MAP_HEIGHT-3-1 };
+            SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
+            for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
+        #else
+            printf("\x1b[%d;1H\x1b[2K", MAP_HEIGHT-3);
+        #endif
+        fflush(stdout);
         delay(500); // 0.5초 대기
     }
     getchar();
 }
 
 void ending_screen_clear(){
-    printf("\x1b[2J\x1b[3;1H");
-    print_center("  ____ _     _____    _    ____  ");
-    print_center(" / ___| |   | ____|  / \\  |  _ \\ ");
-    print_center("| |   | |   |  _|   / _ \\ | |_) |");
-    print_center("| |___| |___| |___ / ___ \\|  _ < ");
-    print_center(" \\____|_____|_____/_/   \\_\\_| \\_\\");
-    printf("\n");
-    print_center("축하합니다! 모든 스테이지를 클리어했습니다!\n");
-    //print_center() 에서는 문자열을 하나만 받기에 %d 사용 불가능
+    clrscr();
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    print_center(5,"  ____ _     _____    _    ____  _ ");
+    print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
+    print_center(7, "| |   | |   |  _|   / _ \\ | |_) | |");
+    print_center(8,"| |___| |___| |___ / ___ \\|  _ <|_|");
+    print_center(9," \\____|_____|_____/_/   \\_\\_| \\_(_)");
+
+    print_center(MAP_HEIGHT-5, "축하합니다! 모든 스테이지를 클리어했습니다!");
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
-    print_center(buf);
-    print_center("Press Any Key to Exit");
+    print_center(MAP_HEIGHT-4, buf);
+    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
     while(!kbhit());
     getchar();
 }
 
 void ending_screen_gameover(){
-    printf("\x1b[2J\x1b[3;1H");                                              
-    print_center("   ____    _    __  __ _____    _____     _______ ____  ");
-    print_center("  / ___|  / \\  |  \\/  | ____|  / _ \\ \\   / / ____|  _ \\ ");
-    print_center(" | |  _  / _ \\ | |\\/| |  _|   | | | \\ \\ / /|  _| | |_) |");
-    print_center(" | |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
-    print_center("  \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
-    printf("\n");
-    printf("너구리가 쓰러졌습니다...\n");
+    clrscr();
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
+    print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
+    print_center(7, "| (_| | (_| | | | | | |  __/ | (_) \\ V /  __/ |   ");
+    print_center(8," \\__, |\\__,_|_| |_| |_|\\___|  \\___/ \\_/ \\___|_|  ");
+    print_center(9," |___/                                            ");
+
+    print_center(MAP_HEIGHT-5, "너구리가 쓰러졌습니다...!");
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
-    print_center(buf);
-    print_center("Press Any Key to Exit");
+    print_center(MAP_HEIGHT-4, buf);
+    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
     while(!kbhit());
     getchar();
 }
@@ -326,8 +375,8 @@ void move_player(char input) {
             }
         } else {
             if (floor_tile != '#' && floor_tile != 'H') {
-                 if (player_y + 1 < MAP_HEIGHT) player_y++;
-                 else init_stage();
+                if (player_y + 1 < MAP_HEIGHT) player_y++;
+                else init_stage();
             }
         }
     }
@@ -385,6 +434,17 @@ int kbhit() {
     }
     return 0;
 }
+
+#ifdef _WIN32
+  void clrscr() {
+    system("cls"); // 윈도우용 (클리어 스크린) 화면 지우기 명령어
+  }
+#else
+  void clrscr() {
+    printf("\x1b[2J\x1b[1;1H"); // 리눅스용 화면 지우기 명령어
+    fflush(stdout);//수정 확인 필요
+  }
+#endif
 
 #ifdef _WIN32
   void delay(int ms) {
