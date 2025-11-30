@@ -34,6 +34,7 @@ int score = 0;
 int is_jumping = 0;
 int velocity_y = 0;
 int on_ladder = 0;
+int heart = 3;
 
 // 게임 객체
 Enemy enemies[MAX_ENEMIES];
@@ -171,6 +172,7 @@ void draw_game() {
     printf("\x1b[2J\x1b[H");
     printf("Stage: %d | Score: %d\n", stage + 1, score);
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
+    printf("Heart: %d\n", heart);
 
     char display_map[MAP_HEIGHT][MAP_WIDTH + 1];
     for(int y=0; y < MAP_HEIGHT; y++) {
@@ -283,14 +285,31 @@ void move_enemies() {
 
 // 충돌 감지 로직
 void check_collisions() {
-    for (int i = 0; i < enemy_count; i++) {
+    for (int i = 0; i < enemy_count; i++) { // 적과 충돌
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
-            score = (score > 50) ? score - 50 : 0;
+            heart--;
+            int coin_score = 0;
+            for (int i = 0; i < coin_count; i++) {
+                if (coins[i].collected) {
+                    coin_score += 20; 
+                }
+            }
+            score -= coin_score; //코인으로 얻은 점수 초기화
+            score = (score > 50) ? score - 50 : 0; //적과 충돌 감점
+            if (heart <= 0) {
+                printf("\x1b[2J\x1b[H");
+                printf("GAME OVER! 생명력이 0이 되었습니다\n");
+                printf("최종 점수: %d\n", score);
+                exit(0);
+            }
+            for (int j = 0; j < coin_count; j++) {
+                coins[j].collected = 0;
+            }
             init_stage();
             return;
         }
     }
-    for (int i = 0; i < coin_count; i++) {
+    for (int i = 0; i < coin_count; i++) { //코인 획득
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
             score += 20;
