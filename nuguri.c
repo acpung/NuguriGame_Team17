@@ -289,8 +289,8 @@ void check_collisions() {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
             heart--;
             int coin_score = 0;
-            for (int i = 0; i < coin_count; i++) {
-                if (coins[i].collected) {
+            for (int j = 0; j < coin_count; j++) { // 코인 점수 개별 계산
+                if (coins[j].collected) {
                     coin_score += 20; 
                 }
             }
