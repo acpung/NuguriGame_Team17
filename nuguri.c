@@ -261,11 +261,15 @@ void title_screen(){
 
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
-    print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
-    print_center(7, "|  \\| | | | | |  _| | | | |_) || | ");
-    print_center(8,"| |\\  | |_| | |_| | |_| |  _ < | | ");
-    print_center(9,"|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
+    if (map_height >= 15) {
+        print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
+        print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
+        print_center(7, "|  \\| | | | | |  _| | | | |_) || | ");
+        print_center(8,"| |\\  | |_| | |_| | |_| |  _ < | | ");
+        print_center(9,"|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
+    } else {
+        print_center(5, "NUGURI GAME");
+    }
 
     while(!kbhit()) {
         print_center(MAP_HEIGHT-2, "press any key to start");
@@ -291,11 +295,15 @@ void ending_screen_clear(){
     clrscr();
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    print_center(5,"  ____ _     _____    _    ____  _ ");
-    print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
-    print_center(7, "| |   | |   |  _|   / _ \\ | |_) | |");
-    print_center(8,"| |___| |___| |___ / ___ \\|  _ <|_|");
-    print_center(9," \\____|_____|_____/_/   \\_\\_| \\_(_)");
+    if (map_height >= 15) {
+        print_center(5,"  ____ _     _____    _    ____  _ ");
+        print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
+        print_center(7, "| |   | |   |  _|   / _ \\ | |_) | |");
+        print_center(8,"| |___| |___| |___ / ___ \\|  _ <|_|");
+        print_center(9," \\____|_____|_____/_/   \\_\\_| \\_(_)");
+    } else {
+        print_center(5, "GAME CLEAR!");
+    }
 
     print_center(MAP_HEIGHT-5, "축하합니다! 모든 스테이지를 클리어했습니다!");
     char buf[50];
@@ -310,11 +318,15 @@ void ending_screen_gameover(){
     clrscr();
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
-    print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
-    print_center(7, "| (_| | (_| | | | | | |  __/ | (_) \\ V /  __/ |   ");
-    print_center(8," \\__, |\\__,_|_| |_| |_|\\___|  \\___/ \\_/ \\___|_|  ");
-    print_center(9," |___/                                            ");
+    if (map_height >= 15) {
+        print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
+        print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
+        print_center(7, "| (_| | (_| | | | | | |  __/ | (_) \\ V /  __/ |   ");
+        print_center(8," \\__, |\\__,_|_| |_| |_|\\___|  \\___/ \\_/ \\___|_|  ");
+        print_center(9," |___/                                            ");
+    } else {
+        print_center(5, "GAME OVER..");
+    }
 
     print_center(MAP_HEIGHT-5, "너구리가 쓰러졌습니다...!");
     char buf[50];
