@@ -347,7 +347,7 @@ void blink_print(int row, char *str){
             xy.X = 0;
             xy.Y = row - 1;
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
-            for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
+            for (int i = 0; i < map_width + 2; i++) printf(" ");
         #else
             printf("\x1b[%d;1H\x1b[2K", row);
         #endif
