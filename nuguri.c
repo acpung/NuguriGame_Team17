@@ -571,46 +571,43 @@ void check_collisions() {
     }
 }
 
-#ifdef _WIN32
-    return _kbhit();
-#else
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-    return 0;
-#endif
+int kbhit(){
+    #ifdef _WIN32
+        return _kbhit();
+    #else
+        struct termios oldt, newt;
+        int ch;
+        int oldf;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+        ch = getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        fcntl(STDIN_FILENO, F_SETFL, oldf);
+        if(ch != EOF) {
+            ungetc(ch, stdin);
+            return 1;
+        }
+        return 0;
+    #endif
+}
 
+void clrscr() {
 #ifdef _WIN32
-  void clrscr() {
     system("cls"); // 윈도우용 (클리어 스크린) 화면 지우기 명령어
-  }
 #else
-  void clrscr() {
     printf("\x1b[2J\x1b[1;1H"); // 리눅스용 화면 지우기 명령어
     fflush(stdout);//수정 확인 필요
-  }
 #endif
+}
 
+void delay(int ms) {
 #ifdef _WIN32
-  void delay(int ms) {
     Sleep(ms); // 윈도우용 잠깐 기다리는 함수. 이건 밀리초임.
-  }
 #else
-  void delay(int ms) {
     usleep(ms * 1000); // 이건 마이크로 초 단위임. 이에 윈도우의 sleep에서 1밀리초인게 usleep에서는 1000*1마이크로초 임.
-  }
 #endif
 }
