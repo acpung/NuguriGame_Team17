@@ -333,7 +333,7 @@ void title_screen(){
 
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    if (map_height >= 15) {
+    if (MAP_HEIGHT >= 15) {
         print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
         print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
         print_center(7, "|  \\| | | | | |  _| | | | |_) || | ");
@@ -361,13 +361,14 @@ void title_screen(){
     }
     getchar();
     sound_select();
+    clrscr();
 }
 
 void ending_screen_clear(){
     clrscr();
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    if (map_height >= 15) {
+    if (MAP_HEIGHT >= 15) {
         print_center(5,"  ____ _     _____    _    ____  _ ");
         print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
         print_center(7, "| |   | |   |  _|   / _ \\ | |_) | |");
@@ -390,7 +391,7 @@ void ending_screen_gameover(){
     clrscr();
     print_border(3);
     print_border(MAP_HEIGHT + 1);
-    if (map_height >= 15) {
+    if (MAP_HEIGHT >= 15) {
         print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
         print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
         print_center(7, "| (_| | (_| | | | | | |  __/ | (_) \\ V /  __/ |   ");
@@ -571,27 +572,29 @@ void check_collisions() {
     }
 }
 
-#ifdef _WIN32
-    return _kbhit();
-#else
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-    return 0;
-#endif
+int khbit(){
+    #ifdef _WIN32
+        return _kbhit();
+    #else
+        struct termios oldt, newt;
+        int ch;
+        int oldf;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+        ch = getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        fcntl(STDIN_FILENO, F_SETFL, oldf);
+        if(ch != EOF) {
+            ungetc(ch, stdin);
+            return 1;
+        }
+        return 0;
+    #endif
+}
 
 #ifdef _WIN32
   void clrscr() {
@@ -613,4 +616,4 @@ void check_collisions() {
     usleep(ms * 1000); // 이건 마이크로 초 단위임. 이에 윈도우의 sleep에서 1밀리초인게 usleep에서는 1000*1마이크로초 임.
   }
 #endif
-}
+
