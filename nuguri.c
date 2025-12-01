@@ -572,7 +572,7 @@ void check_collisions() {
     }
 }
 
-int khbit(){
+int kbhit(){
     #ifdef _WIN32
         return _kbhit();
     #else
