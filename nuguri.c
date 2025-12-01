@@ -73,6 +73,55 @@ void move_player(char input);
 void move_enemies();
 void check_collisions();
 int kbhit();
+void clrscr();
+void delay(int ms);
+void print_border(int row);
+void print_center(int row, char *str);
+void title_screen();
+void ending_screen_clear();
+void ending_screen_gameover();
+
+void sound_coin() {
+#ifdef _WIN32
+    Beep(1000, 80);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_hit() {
+#ifdef _WIN32
+    Beep(300, 200);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_select() {
+#ifdef _WIN32
+    Beep(700, 100);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_clear() {
+#ifdef _WIN32
+    Beep(900, 100);
+    Beep(1200, 150);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_gameover() {
+#ifdef _WIN32
+    Beep(400, 200);
+    Beep(250, 300);
+#else
+    printf("\a"); fflush(stdout);
+#endif
+}
 
 int main() {
 
@@ -89,6 +138,7 @@ int main() {
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
+    title_screen();
     init_stage();
 
     char c = '\0';
@@ -144,17 +194,18 @@ int main() {
         if (map[stage][player_y][player_x] == 'E') {
             stage++;
             score += 100;
+            sound_clear();
             if (stage < MAX_STAGES) {
                 init_stage();
             } else {
                 game_over = 1;
-                printf("\x1b[2J\x1b[H");
-                printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
-                printf("최종 점수: %d\n", score);
+                ending_screen_clear();
+                // printf("\x1b[2J\x1b[H");
+                // printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
+                // printf("최종 점수: %d\n", score);
             }
         }
     }
-
     disable_raw_mode();
 
     #ifdef _WIN32
@@ -236,6 +287,126 @@ void init_stage() {
             }
         }
     }
+}
+
+void print_border(int row) {
+    #ifdef _WIN32
+        COORD xy; // COORD는 coordinate의 줄임말임. x와 y 값 저장하는 역할임.
+        xy.X = 0;
+        xy.Y = row-1+3;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE)/*콘솔화면*/, xy/*좌표*/);
+        // SetConsoleCursorPosition은 콘솔id랑 좌표를 파라미터로 받아서 커서를 이동시킴
+    #else
+        printf("\x1b[%d;1H", row);
+        fflush(stdout);
+    #endif
+    
+    for (int i = 0; i < MAP_WIDTH + 2; i++) printf("#");
+}
+
+void print_center(int row, char *str){
+    int center;
+    int len = strlen(str);
+    
+    if (len >= MAP_WIDTH + 2) {
+        center = 1;
+    } else {
+        center = (MAP_WIDTH + 2 - len) / 2 + 1;
+    }
+
+    #ifdef _WIN32
+        COORD xy; // COORD는 coordinate의 줄임말임. x와 y 값 저장하는 역할임.
+        xy.X = center-1;
+        xy.Y = row-1;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE)/*콘솔화면*/, xy/*좌표*/);
+        // SetConsoleCursorPosition은 콘솔id랑 좌표를 파라미터로 받아서 커서를 이동시킴
+    #else
+        printf("\x1b[%d;%dH", row, center);
+        fflush(stdout);
+    #endif
+
+    printf("%s", str);
+}
+
+void title_screen(){
+    clrscr();
+
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    if (map_height >= 15) {
+        print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
+        print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
+        print_center(7, "|  \\| | | | | |  _| | | | |_) || | ");
+        print_center(8,"| |\\  | |_| | |_| | |_| |  _ < | | ");
+        print_center(9,"|_| \\_|\\___/ \\____|\\___/|_| \\_\\___|");
+    } else {
+        print_center(5, "NUGURI GAME");
+    }
+
+    while(!kbhit()) {
+        print_center(MAP_HEIGHT-2, "press any key to start");
+        fflush(stdout);
+        delay(500); // 0.5초 대기
+
+        //해당 위치 줄 삭제
+        #ifdef _WIN32
+            COORD xy = { 0, (MAP_HEIGHT-2)-1 };
+            SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
+            for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
+        #else
+            printf("\x1b[%d;1H\x1b[2K", MAP_HEIGHT-2);
+        #endif
+        fflush(stdout);
+        delay(500); // 0.5초 대기
+    }
+    getchar();
+    sound_select();
+}
+
+void ending_screen_clear(){
+    clrscr();
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    if (map_height >= 15) {
+        print_center(5,"  ____ _     _____    _    ____  _ ");
+        print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
+        print_center(7, "| |   | |   |  _|   / _ \\ | |_) | |");
+        print_center(8,"| |___| |___| |___ / ___ \\|  _ <|_|");
+        print_center(9," \\____|_____|_____/_/   \\_\\_| \\_(_)");
+    } else {
+        print_center(5, "GAME CLEAR!");
+    }
+
+    print_center(MAP_HEIGHT-5, "축하합니다! 모든 스테이지를 클리어했습니다!");
+    char buf[50];
+    sprintf(buf, "최종 점수: %d", score);
+    print_center(MAP_HEIGHT-4, buf);
+    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
+    while(!kbhit());
+    getchar();
+}
+
+void ending_screen_gameover(){
+    clrscr();
+    print_border(3);
+    print_border(MAP_HEIGHT + 1);
+    if (map_height >= 15) {
+        print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
+        print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
+        print_center(7, "| (_| | (_| | | | | | |  __/ | (_) \\ V /  __/ |   ");
+        print_center(8," \\__, |\\__,_|_| |_| |_|\\___|  \\___/ \\_/ \\___|_|  ");
+        print_center(9," |___/                                            ");
+    } else {
+        print_center(5, "GAME OVER..");
+    }
+
+    print_center(MAP_HEIGHT-5, "너구리가 쓰러졌습니다...!");
+    char buf[50];
+    sprintf(buf, "최종 점수: %d", score);
+    print_center(MAP_HEIGHT-4, buf);
+    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
+    while(!kbhit());
+    getchar();
 }
 
 // 게임 화면 그리기
@@ -343,8 +514,8 @@ void move_player(char input) {
             }
         } else {
             if (floor_tile != '#' && floor_tile != 'H') {
-                 if (player_y + 1 < MAP_HEIGHT) player_y++;
-                 else init_stage();
+                if (player_y + 1 < MAP_HEIGHT) player_y++;
+                else init_stage();
             }
         }
     }
@@ -369,19 +540,19 @@ void move_enemies() {
 void check_collisions() {
     for (int i = 0; i < enemy_count; i++) { // 적과 충돌
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
+            sound_hit();
             heart--;
             int coin_score = 0;
             for (int j = 0; j < coin_count; j++) { // 코인 점수 개별 계산
                 if (coins[j].collected) {
-                    coin_score += 20; 
+                    coin_score += 20;
+                    sound_coin();
                 }
             }
             score -= coin_score; //코인으로 얻은 점수 초기화
             score = (score > 50) ? score - 50 : 0; //적과 충돌 감점
             if (heart <= 0) {
-                printf("\x1b[2J\x1b[H");
-                printf("GAME OVER! 생명력이 0이 되었습니다\n");
-                printf("최종 점수: %d\n", score);
+                ending_screen_gameover();
                 exit(0);
             }
             for (int j = 0; j < coin_count; j++) {
@@ -395,31 +566,51 @@ void check_collisions() {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
             score += 20;
+            sound_coin();
         }
     }
 }
 
-// 비동기 키보드 입력 확인
-int kbhit() {
-    #ifdef _WIN32
-        return _kbhit();
-    #else
-        struct termios oldt, newt;
-        int ch;
-        int oldf;
-        tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
-        newt.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-        ch = getchar();
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        fcntl(STDIN_FILENO, F_SETFL, oldf);
-        if(ch != EOF) {
-            ungetc(ch, stdin);
-            return 1;
-        }
-        return 0;
-    #endif
+#ifdef _WIN32
+    return _kbhit();
+#else
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+    if(ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+    return 0;
+#endif
+
+#ifdef _WIN32
+  void clrscr() {
+    system("cls"); // 윈도우용 (클리어 스크린) 화면 지우기 명령어
+  }
+#else
+  void clrscr() {
+    printf("\x1b[2J\x1b[1;1H"); // 리눅스용 화면 지우기 명령어
+    fflush(stdout);//수정 확인 필요
+  }
+#endif
+
+#ifdef _WIN32
+  void delay(int ms) {
+    Sleep(ms); // 윈도우용 잠깐 기다리는 함수. 이건 밀리초임.
+  }
+#else
+  void delay(int ms) {
+    usleep(ms * 1000); // 이건 마이크로 초 단위임. 이에 윈도우의 sleep에서 1밀리초인게 usleep에서는 1000*1마이크로초 임.
+  }
+#endif
 }
