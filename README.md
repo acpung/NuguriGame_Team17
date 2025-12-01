@@ -18,22 +18,19 @@
 ---
 
 # 3. OS별 컴파일 및 실행 방법 가이드
-- **기본 전제:** 모든 크로스플랫폼에서 gcc 컴파일러와 make를 사용하여 실행함
+- **기본 전제:** 모든 크로스플랫폼에서 gcc 컴파일러를 사용하여 실행함
   
                  기본 window의 CMD는 이를 인식할 수 없기에
                  MinGW-w64를 사용한 터미널이 필요함
 - **Windows**
-  - 컴파일 : make
-  - 실행 : ./nuguri.exe
-  - 삭제 : make clean
+  - 컴파일 : gcc nuguri.c screen_control.c map.c -o nuguri.exe
+  - 실행 : .\nuguri.exe
 - **Mac**
-  - 컴파일 : make
-  - 실행 : ./diablo
-  - 삭제 : make clean
+  - 컴파일 : gcc nuguri.c screen_control.c map.c -o nuguri
+  - 실행 : ./nuguri
 - **Linux**
-  - 컴파일 : make
-  - 실행 : ./diablo
-  - 삭제 : make clean
+  - 컴파일 : gcc nuguri.c screen_control.c map.c -o nuguri
+  - 실행 : ./nuguri
 ---
 
 # 4. 구현 기능 리스트 및 게임 스크린샷
