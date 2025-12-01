@@ -77,6 +77,7 @@ void clrscr();
 void delay(int ms);
 void print_border(int row);
 void print_center(int row, char *str);
+void blink_print(int row, char *str);
 void title_screen();
 void ending_screen_clear();
 void ending_screen_gameover();
@@ -328,6 +329,29 @@ void print_center(int row, char *str){
     printf("%s", str);
 }
 
+//깜빡거리게 출력되는 함수
+void blink_print(int row, char *str){
+    while(!kbhit()) {
+        print_center(row, (char *)str);
+        fflush(stdout);
+        delay(500); // 0.5초 대기
+
+        //해당 위치 줄 삭제
+        #ifdef _WIN32
+            COORD xy;
+            xy.X = 0;
+            xy.Y = row - 1;
+            SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
+            for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
+        #else
+            printf("\x1b[%d;1H\x1b[2K", row);
+        #endif
+        fflush(stdout);
+        delay(500); // 0.5초 대기
+    }
+    getchar();
+}
+
 void title_screen(){
     clrscr();
 
@@ -343,25 +367,8 @@ void title_screen(){
         print_center(5, "NUGURI GAME");
     }
 
-    while(!kbhit()) {
-        print_center(MAP_HEIGHT-2, "press any key to start");
-        fflush(stdout);
-        delay(500); // 0.5초 대기
+    blink_print(MAP_HEIGHT-2, "press any key to start");
 
-        //해당 위치 줄 삭제
-        #ifdef _WIN32
-            COORD xy;
-            xy.X = 0;
-            xy.Y = (MAP_HEIGHT-2)-1;
-            SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
-            for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
-        #else
-            printf("\x1b[%d;1H\x1b[2K", MAP_HEIGHT-2);
-        #endif
-        fflush(stdout);
-        delay(500); // 0.5초 대기
-    }
-    getchar();
     sound_select();
     clrscr();
 }
@@ -384,9 +391,8 @@ void ending_screen_clear(){
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
     print_center(MAP_HEIGHT-4, buf);
-    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
-    while(!kbhit());
-    getchar();
+    blink_print(MAP_HEIGHT-2, "Press Any Key to Exit");
+    print_center(MAP_HEIGHT+3, "");//커서 이동;
 }
 
 void ending_screen_gameover(){
@@ -407,9 +413,8 @@ void ending_screen_gameover(){
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
     print_center(MAP_HEIGHT-4, buf);
-    print_center(MAP_HEIGHT-2, "Press Any Key to Exit");
-    while(!kbhit());
-    getchar();
+    blink_print(MAP_HEIGHT-2, "Press Any Key to Exit");
+    print_center(MAP_HEIGHT+3, "");//커서 이동;
 }
 
 // 게임 화면 그리기
