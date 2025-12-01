@@ -293,7 +293,7 @@ void print_border(int row) {
     #ifdef _WIN32
         COORD xy; // COORD는 coordinate의 줄임말임. x와 y 값 저장하는 역할임.
         xy.X = 0;
-        xy.Y = row-1+3;
+        xy.Y = row-1;
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE)/*콘솔화면*/, xy/*좌표*/);
         // SetConsoleCursorPosition은 콘솔id랑 좌표를 파라미터로 받아서 커서를 이동시킴
     #else
@@ -332,7 +332,7 @@ void title_screen(){
     clrscr();
 
     print_border(3);
-    print_border(MAP_HEIGHT + 1);
+    print_border(MAP_HEIGHT + 2);
     if (MAP_HEIGHT >= 15) {
         print_center(5, " _   _ _   _  ____ _   _ ____  ___ ");
         print_center(6, "| \\ | | | | |/ ___| | | |  _ \\|_ _|");
@@ -350,7 +350,9 @@ void title_screen(){
 
         //해당 위치 줄 삭제
         #ifdef _WIN32
-            COORD xy = { 0, (MAP_HEIGHT-2)-1 };
+            COORD xy;
+            xy.X = 0;
+            xy.Y = (MAP_HEIGHT-2)-1;
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), xy);
             for (int i = 0; i < MAP_WIDTH + 2; i++) printf(" ");
         #else
@@ -367,7 +369,7 @@ void title_screen(){
 void ending_screen_clear(){
     clrscr();
     print_border(3);
-    print_border(MAP_HEIGHT + 1);
+    print_border(MAP_HEIGHT + 2);
     if (MAP_HEIGHT >= 15) {
         print_center(5,"  ____ _     _____    _    ____  _ ");
         print_center(6, " / ___| |   | ____|  / \\  |  _ \\| |");
@@ -390,7 +392,7 @@ void ending_screen_clear(){
 void ending_screen_gameover(){
     clrscr();
     print_border(3);
-    print_border(MAP_HEIGHT + 1);
+    print_border(MAP_HEIGHT + 2);
     if (MAP_HEIGHT >= 15) {
         print_center(5, "  __ _  __ _ _ __ ___   ___    _____   _____ _ __ ");
         print_center(6, " / _` |/ _` | '_ ` _ \\ / _ \\  / _ \\ \\ / / _ \\ '__|");
