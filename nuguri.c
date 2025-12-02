@@ -540,9 +540,9 @@ void move_player(char input) {
     // 속도가 있는 경우(점프 한 경우)에 다음 위치의 좌우 이동이 벽인지 감지하는 문장이 없어 추가함
     // 속도가 없는 경우 중 떨어지는 경우에도 다음 위치의 좌우 이동을 벽인지 감지하도록 추가함
     if(velocity_y > 0){
-        if (next_x >= 0 && next_x < map_width && map[stage][player_y][next_x] != '#' && map[stage][player_y+1][next_x] != '#') player_x = next_x;
-    } else if(velocity_y > 0){
-        if (next_x >= 0 && next_x < map_width && map[stage][player_y][next_x] != '#' && map[stage][player_y-1][next_x] != '#') player_x = next_x;
+        if (next_x >= 0 && next_x < map_width && map[stage][player_y][next_x] != '#') player_x = next_x;
+    } else if(velocity_y < 0){
+        if (next_x >= 0 && next_x < map_width && map[stage][player_y][next_x] != '#') player_x = next_x;
     } else if (floor_tile != '#' && floor_tile != 'H') {
         if (map[stage][player_y+1][next_x] != '#') player_x = next_x;
     } else {
@@ -563,7 +563,8 @@ void move_player(char input) {
 
             if (velocity_y < 0 && next_y < map_height && map[stage][next_y][player_x] == '#') {
                 velocity_y = 0;
-            } else if (next_y < map_height) {
+            } else if (velocity_y > 0 && next_y < map_height && map[stage][next_y][player_x] == '#') {
+            }else if (next_y < map_height) {
                 player_y = next_y;
             }
             
