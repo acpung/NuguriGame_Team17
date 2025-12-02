@@ -472,7 +472,7 @@ void ending_screen_gameover(){
 // 게임 화면 그리기
 void draw_game() {
     printf("\x1b[H"); //깜빡임 없애기 위해 \x1b[2J를 삭제함
-    printf("Stage: %d | Score: %d\n", stage + 1, score);
+    printf("Stage: %d | Score: %-4d\n", stage + 1, score);
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
     printf("Heart: %d\n", heart);
 
