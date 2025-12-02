@@ -87,43 +87,89 @@ void title_screen();
 void ending_screen_clear();
 void ending_screen_gameover();
 
-void sound_coin() {
+#define C 523
+#define D 587
+#define D_ 623
+#define E 659
+#define F 698
+#define G 784
+#define A 880
+#define A_ 930
+#define B 988
+#define highC 1047 
+
+void sound_coin(){
 #ifdef _WIN32
-    Beep(1000, 80);
+    Beep(C, 50);
+    Beep(E, 50);
+    Beep(G, 50);
+#else
+    printf("\a"); fflush(stdout);
+    delay(5);
+    printf("\a"); fflush(stdout);
+    delay(5);
+    printf("\a"); fflush(stdout);
+#endif
+}
+
+void sound_hit(){
+#ifdef _WIN32
+    Beep(D_, 50);
+    Beep(A_, 50);
+    Beep(D, 50);
 #else
     printf("\a"); fflush(stdout);
 #endif
 }
 
-void sound_hit() {
+void sound_select(){
 #ifdef _WIN32
-    Beep(300, 200);
+    Beep(highC, 450);
+    delay(100);
+    Beep(B, 150);
+    Beep(A_, 550);
+    delay(100);
+    Beep(A, 150);
+    Beep(G, 150);
+    Beep(F, 150);
+    Beep(E, 150);
+    Beep(D, 150);
+    Beep(C, 400);
 #else
     printf("\a"); fflush(stdout);
 #endif
 }
 
-void sound_select() {
+void sound_clear(){
 #ifdef _WIN32
-    Beep(700, 100);
+    Beep(C, 300);
+    delay(100);
+    Beep(E, 300);
+    delay(100);
+    Beep(G, 200);
+    Beep(E, 200);
+    Beep(C, 300);
+    delay(100);
+    Beep(A, 200);
+    Beep(G, 200);
+    Beep(A, 200);
+    Beep(B, 200);
+    Beep(highC, 300);
 #else
     printf("\a"); fflush(stdout);
 #endif
 }
 
-void sound_clear() {
+void sound_gameover() { 
 #ifdef _WIN32
-    Beep(900, 100);
-    Beep(1200, 150);
-#else
-    printf("\a"); fflush(stdout);
-#endif
-}
-
-void sound_gameover() {
-#ifdef _WIN32
-    Beep(400, 200);
-    Beep(250, 300);
+    Beep(highC, 300);
+    Beep(G, 100);
+    Beep(G, 100);
+    Beep(A, 200);
+    Beep(G, 400);
+    delay(100);
+    Beep(B, 200);
+    Beep(highC, 400);;
 #else
     printf("\a"); fflush(stdout);
 #endif
@@ -359,7 +405,6 @@ void blink_print(int row, char *str){
 
 void title_screen(){
     clrscr();
-
     print_border(3);
     print_border(map_height + 2);
     if (map_height >= 15) {
@@ -396,6 +441,7 @@ void ending_screen_clear(){
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
     print_center(map_height-4, buf);
+    sound_clear();
     blink_print(map_height-2, "Press Any Key to Exit");
     print_center(map_height+3, "");//커서 이동;
 }
@@ -418,6 +464,7 @@ void ending_screen_gameover(){
     char buf[50];
     sprintf(buf, "최종 점수: %d", score);
     print_center(map_height-4, buf);
+    sound_gameover();
     blink_print(map_height-2, "Press Any Key to Exit");
     print_center(map_height+3, "");//커서 이동;
 }
@@ -560,7 +607,6 @@ void check_collisions() {
             for (int j = 0; j < coin_count; j++) { // 코인 점수 개별 계산
                 if (coins[j].collected) {
                     coin_score += 20;
-                    sound_coin();
                 }
             }
             score -= coin_score; //코인으로 얻은 점수 초기화
