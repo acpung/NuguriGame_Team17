@@ -42,6 +42,9 @@ for (int s = 0; s < max_stages; s++) {
 		// 각 행의 width 생성, +1: NULL문자
 		map[s][r] = (char *)malloc(sizeof(char) * (map_width+1));
 		if (map[s][r] == NULL) {perror("메모리 할당 실패"); exit(1); }
+
+		memset(map[s][r], ' ', map_width);
+		map[s][r][map_width] = '\0';
 				}
 
 			}
@@ -51,23 +54,45 @@ char *line_buf = (char *)malloc(sizeof(char) * (map_width+10));
 
 int s=0; // 현재 읽는 stage
 int r=0; // 현재 읽는 row(행)
+
 // 임시버퍼: 개행문자 '\n', NULL 처리
-while (fgets(line_buf, map_width + 5, file) != NULL) {
-	if (s >= max_stages) break;
+    while (fgets(line_buf, map_width + 10, file) != NULL) {
+        if (s >= max_stages) break;
 
-	if(strlen(line_buf) < 2) continue;
-	// 개행문자 제거
+	// [수정]
 	line_buf[strcspn(line_buf, "\r\n")] = '\0';
-	// 데이터 복사
-	strcpy(map[s][r], line_buf); // 메모리 해제 함수 (프로그램 종료 시 호출)
-	r++;
 
-	if(r>=map_height) {
-		s++;
-		r=0;
-	}
-}
+	 if (strlen(line_buf)==0) {
+            if (r > 0) { // 데이터를 읽던 도중에 빈 줄을 만남 -> 스테이지 조기 종료
+                while (r < map_height) {
+                    for (int i = 0; i < map_width; i++) {
+                        map[s][r][i] = ' '; // 남은 공간 공백 채우기
+                    }
+                    map[s][r][map_width] = '\0';
+                    r++;
+                }
+                s++; 
+                r = 0;
+            }
+            continue; 
+        }
 
+	strncpy(map[s][r], line_buf, map_width);
+	map[s][r][map_width] = '\0';
+
+	int len = strlen(line_buf);
+		if(len<map_width) {
+			memset(map[s][r] + len, ' ', map_width - len);
+		}
+
+      
+        r++;
+
+        if (r >= map_height) {
+            s++;
+            r = 0;
+        }
+    }
 free(line_buf);
 fclose(file);
 }
