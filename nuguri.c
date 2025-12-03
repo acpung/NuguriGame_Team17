@@ -237,9 +237,9 @@ int main() {
         draw_game();
 
         #ifdef _WIN32
-            Sleep(90);
+            Sleep(40);
         #else
-            usleep(90000);
+            usleep(150000);
         #endif
         
 
